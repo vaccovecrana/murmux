@@ -1,4 +1,4 @@
-<!-- *Before creating an issue please make sure you are using the latest version of java express -->
+<!-- *Before creating an issue please make sure you are using the latest version -->
 
 > Do you want to request a **feature** or report a **bug**? 
 
@@ -8,4 +8,4 @@
 
 > What is the expected behavior?
 
-> Please mention your java and java-express version. 
+> Please mention your java and murmux version. 
