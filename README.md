@@ -5,10 +5,9 @@ Zero-dependencies HTTP Framework based on ExpressJS
 ```java
 public class Example {
   public static void main(String[] args) {
-    Murmux app = new Murmux();
-    app
-      .get("/", (req, res) -> res.send("Hello World"))
-      .listen(); // Will listen on port 80 which is set as default
+    new Murmux()
+      .rootHandler(xc -> xc.commitText("Hello world"))
+      .listen(8080); // Will listen on port 8080
   }
 }
 ```
@@ -54,7 +53,7 @@ You can add routes (And middlewares) directly to handle requests. Direct also su
 
 However, it's better to split your code. You can create routes and add them at runtime:
 
-[DeferredRouting](./src/test/java/examples/DeferredRouting.java)
+[DeferredRouting](./src/test/java/examples/PrefixRouting.java)
 
 ## URL Basics
 
@@ -76,7 +75,7 @@ If you make a request which contains queries, you can access the queries over `r
 
 Example request: `GET /posts?page=12&from=john`:
 
-[UrlQuery](./src/test/java/examples/UrlQuery.java)
+[UrlQuery](./src/test/java/examples/UrlParameters.java)
 
 ## Cookies
 
@@ -96,41 +95,25 @@ Use `req.getFormQuery(NAME)` to receive values from input elements of an HTML-Fo
 
 # Middleware
 
-Middleware allows you to handle a request before it reaches any other request handler. To create middleware you have several interfaces:
-
-* [MxHandler](./src/main/java/io/vacco/murmux/http/MxHandler.java) - handles requests.
-* [MxFilter](./src/main/java/io/vacco/murmux/filter/MxFilter.java) - puts data on the request listener.
-* [MxFilterTask](./src/main/java/io/vacco/murmux/filter/MxFilterTask.java) - for middleware which needs a background thread.
+Middleware allows you to handle a request before it reaches any other request handler.
 
 Middlewares work exactly as request handlers.
 
 You can also filter by [request-methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) and contexts:
 
-[Middleware](./src/test/java/examples/Middleware.java)
-
-## Custom middleware
-
-Create a middleware class:
-
-[PortMiddleware](./src/test/java/examples/PortMiddleware.java)
-
-And use it:
-
-[PortHandler](./src/test/java/examples/PortHandler.java)
-
 ## Existing Middlewares
 
-Core middlewares are included in [MxMiddleware](./src/main/java/io/vacco/murmux/middleware/MxMiddleware.java).
+Core middlewares are included in [MxMiddleware](./src/main/java/io/vacco/murmux/middleware).
 
 #### CORS
 
 To realize a CORS api you can use the CORS middleware.
 
-[CorsMiddleware](./src/test/java/examples/CorsMiddleware.java)
+[Cors](./src/test/java/examples/Cors.java)
 
 #### Static Content
 
-Use [MxFileProvider](./src/main/java/io/vacco/murmux/middleware/MxFileProvider.java) to serve static content.
+Use [MxStatic](./src/main/java/io/vacco/murmux/middleware/MxStatic.java) to serve static content.
 
 Example:
 
@@ -138,7 +121,7 @@ Example:
 
 #### Cookie Session
 
-A simple cookie-session middleware is provided:
+A simple in-memory cookie-session middleware is provided:
 
 [CookieSession](./src/test/java/examples/CookieSession.java)
 
@@ -147,10 +130,6 @@ A simple cookie-session middleware is provided:
 #### File download
 
 [FileDownload](./src/test/java/examples/FileDownload.java)
-
-#### Send cookies
-
-[SendCookies](./src/test/java/examples/SendCookies.java)
 
 # Development
 

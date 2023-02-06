@@ -1,26 +1,19 @@
 package examples;
 
 import io.vacco.murmux.Murmux;
+import io.vacco.murmux.middleware.MxRouter;
 
 public class UrlParameters {
   public static void main(String[] args) {
     LoggerInit.apply();
-    new Murmux() {
-      {
-        get(
-          "/posts/:user/:description",
-          (req, res) -> {
-            String user = req.getParam("user"); // Contains 'john'
-            String description = req.getParam("description"); // Contains 'all'
-            res.send(
-              "User: "
-                + user
-                + ", description: "
-                + description); // Send: "User: john, description: all"
-          });
-        // Start server
-        listen(8080);
-      }
-    };
+    new Murmux().rootHandler(
+      new MxRouter()
+        .get("/posts/:user/:description", xc -> {
+          var user = xc.getPathParam("user"); // Contains 'john'
+          var description = xc.getPathParam("description"); // Contains 'all'
+          // Send: "User: john, description: all"
+          xc.commitText(String.format("User: %s, description: %s", user, description));
+        })
+    ).listen(8080);
   }
 }

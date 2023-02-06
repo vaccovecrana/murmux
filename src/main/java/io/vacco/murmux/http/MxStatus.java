@@ -1,7 +1,7 @@
-package io.vacco.murmux.util;
+package io.vacco.murmux.http;
 
 /**
- * Enum with all status codes.
+ * HTTP status codes.
  */
 public enum MxStatus {
 
@@ -79,7 +79,6 @@ public enum MxStatus {
   _599(599, "Network Connect Timeout Error");
 
   static {
-    // Check values
     for (MxStatus s : values()) {
       if (s.name().charAt(0) != '_') {
         throw new IllegalStateException("Status code '" + s + "' need to start with underscore.");
@@ -87,8 +86,8 @@ public enum MxStatus {
     }
   }
 
-  private String description;
-  private int code;
+  public final String description;
+  public final int code;
 
   MxStatus(int code, String description) {
     this.code = code;
@@ -96,7 +95,6 @@ public enum MxStatus {
   }
 
   public static MxStatus valueOf(int code) {
-    // Find status which matches code
     for (MxStatus status : values()) {
       if (status.code == code) {
         return status;
@@ -105,11 +103,4 @@ public enum MxStatus {
     return null;
   }
 
-  public String getDescription() {
-    return description;
-  }
-
-  public int getCode() {
-    return code;
-  }
 }

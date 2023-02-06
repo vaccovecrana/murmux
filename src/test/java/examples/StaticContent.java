@@ -1,39 +1,20 @@
 package examples;
 
 import io.vacco.murmux.Murmux;
-import io.vacco.murmux.middleware.MxDotFiles;
-import io.vacco.murmux.middleware.MxFileProviderOptions;
-import io.vacco.murmux.middleware.MxMiddleware;
-
-import java.io.IOException;
+import io.vacco.murmux.middleware.*;
+import java.nio.file.Paths;
 
 public class StaticContent {
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) {
     LoggerInit.apply();
-
-    var options = new MxFileProviderOptions();
-    options.setExtensions("html", "css", "js", "properties"); // By default, all are allowed.
-
-    /*
-     * Activate fallback search.
-     * E.g. if a request to <code>/js/code.js</code> was made but the
-     * requested resource cannot be found, try searching under the <code>code</code> directory.
-     */
-    options.setFallBackSearching(true);
-    options.setHandler(
-      (req, res) -> {
-      }); // Can be used to handle the request before the file will be returned.
-    options.setLastModified(true); // Send the Last-Modified header, by default true.
-    options.setMaxAge(10000); // Send the Cache-Control header, by default 0.
-    options.setDotFiles(MxDotFiles.DENY); // Deny access to dot-files. Default is IGNORE.
-
-    new Murmux() {
-      {
-        // Try GET /gradle.properties
-        use(MxMiddleware.statics(".", options));
-        // Start server
-        listen(8080);
-      }
-    };
+    new Murmux().rootHandler(
+      new MxRouter()
+        // This serves content from a Filesystem location.
+        // try http://localhost:8080/src/test/resources/murmux.png
+        .prefix("/src", new MxStatic(MxStatic.Origin.FileSystem, Paths.get(".")))
+        // This serves content from the root of the classpath (i.e. any static resources embedded inside a jar file).
+        // try http://localhost:8080/glossary.json
+        .prefix("/glossary.json", new MxStatic(MxStatic.Origin.Classpath, Paths.get("/")))
+    ).listen(8080);
   }
 }

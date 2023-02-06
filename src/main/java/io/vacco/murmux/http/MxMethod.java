@@ -1,11 +1,10 @@
 package io.vacco.murmux.http;
 
 /**
- * Enum with basic request methods.
+ * HTTP request methods.
  */
 public enum MxMethod {
 
-  // Real request methods
   GET("GET"),
   POST("POST"),
   PUT("PUT"),
@@ -16,16 +15,15 @@ public enum MxMethod {
   TRACE("TRACE"),
   HEAD("HEAD"),
 
-  // Catch every method
-  ALL("*");
+  /**
+   * Wildcards for nested routing. Not standard.
+   */
+  ANY("ANY"), PREFIX("PREFIX");
 
-  private final String method;
+  public final String method;
 
   MxMethod(String method) {
     this.method = method;
   }
 
-  public String getMethod() {
-    return method;
-  }
 }

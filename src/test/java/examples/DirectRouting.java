@@ -1,27 +1,25 @@
 package examples;
 
 import io.vacco.murmux.Murmux;
+import io.vacco.murmux.middleware.MxRouter;
 
 public class DirectRouting {
   public static void main(String[] args) {
     LoggerInit.apply();
-    var app = new Murmux();
-
-    // Sample for home routes
-    app.get("/", (req, res) -> res.send("Hello index!"));
-    app.get("/home", (req, res) -> res.send("Homepage"));
-    app.get("/about", (req, res) -> res.send("About"));
-
-    // Sample for user
-    app.get("/user/login", (req, res) -> res.send("Please login!"));
-    app.get("/user/register", (req, res) -> res.send("Join now!"));
-
-    // Basic methods
-    app.get("/user", (req, res) -> res.send("Get an user!"));
-    app.patch("/user", (req, res) -> res.send("Modify an user!"));
-    app.delete("/user", (req, res) -> res.send("Delete an user!"));
-    app.put("/user", (req, res) -> res.send("Add an user!"));
-
-    app.listen(8080);
+    new Murmux().rootHandler(
+      new MxRouter()
+        // Sample for home routes
+        .get("/", xc -> xc.commitText("Hello index"))
+        .get("/home", xc -> xc.commitText("Homepage"))
+        .get("/about", xc -> xc.commitText("About"))
+        // Sample for user
+        .get("/user/login", xc -> xc.commitText("Please login"))
+        .get("/user/register", xc -> xc.commitText("Join now"))
+        // Basic methods
+        .get("/user", xc -> xc.commitText("Get user"))
+        .patch("/user", xc -> xc.commitText("Modify user"))
+        .delete("/user", xc -> xc.commitText("Delete user"))
+        .put("/user", xc -> xc.commitText("Add user"))
+    ).listen(8080);
   }
 }
