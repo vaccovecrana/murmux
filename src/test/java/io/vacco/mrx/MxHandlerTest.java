@@ -144,7 +144,7 @@ public class MxHandlerTest {
       try (var res = logo.execute()) {
         var baos = new ByteArrayOutputStream();
         res.bodyAsStream().transferTo(baos);
-        log.info("[{}] {}", baos.size(), Base64.getEncoder().encodeToString(baos.toByteArray()));
+        log.info("[{}]", baos.size());
         assertEquals(_200.code, res.getResponseCode());
       }
     });
