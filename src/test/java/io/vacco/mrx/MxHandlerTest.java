@@ -63,15 +63,6 @@ public class MxHandlerTest {
     "</body>\n" +
     "</html>";
 
-  public static Function<Long, Void> sleep = (ms) -> {
-    try {
-      Thread.sleep(ms);
-      return null;
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-  };
-
   static {
     LoggerInit.apply();
     beforeAll(() -> mx = new Murmux()
@@ -79,9 +70,9 @@ public class MxHandlerTest {
       .listen(8080));
 
     if (GraphicsEnvironment.isHeadless()) {
-      sleep.apply(25000L);
+      MxCoreTest.sleep.apply(25000L);
     } else {
-      sleep.apply(3000L);
+      MxCoreTest.sleep.apply(3000L);
     }
 
     Logger log = LoggerFactory.getLogger(MxHandlerTest.class);

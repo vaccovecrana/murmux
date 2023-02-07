@@ -42,7 +42,7 @@ public class MxExchange {
       this.formParams = getFormQueries(io.getRequestBody(), ct);
     });
     this.queries = parseFormKv(io.getRequestURI().getRawQuery());
-    this.cookies = parseCookieKv(io);
+    this.cookies = parseCookies(io);
   }
 
   /*

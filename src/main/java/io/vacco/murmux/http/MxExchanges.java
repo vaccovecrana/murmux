@@ -157,16 +157,19 @@ public class MxExchanges {
     return parseKv(raw, "&", "=", true);
   }
 
-  public static Map<String, MxCookie> parseCookieKv(HttpExchange io) {
-    var hCookies = io.getRequestHeaders().get(HCookie);
-    if (hCookies == null || hCookies.isEmpty()) {
-      return Collections.emptyMap();
-    }
-    var raw = hCookies.get(0);
+  public static Map<String, MxCookie> parseCookiesTxt(String raw) {
     return parseKv(raw, "; ", "=", false)
       .entrySet().stream()
       .map(e -> new MxCookie(e.getKey().trim(), e.getValue()))
       .collect(toMap(mxc -> mxc.name, Function.identity()));
+  }
+
+  public static Map<String, MxCookie> parseCookies(HttpExchange io) {
+    var hCookies = io.getRequestHeaders().get(HCookie);
+    if (hCookies == null || hCookies.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    return parseCookiesTxt(hCookies.get(0));
   }
 
   public static Optional<Long> getContentLength(HttpExchange io) {

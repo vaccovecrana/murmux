@@ -10,6 +10,7 @@ public class CookieSession {
         .get("/logout", xc -> xc.commitText("Session invalidated (you're logged out)"))
         .get("/session",
           new MxMemory<>(
+            // Our session will expire after 9 seconds.
             "f3v4", 9000,
             () -> new MxSession<Integer>().withData(0),
             xc -> {

@@ -6,6 +6,7 @@ import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
+import java.util.function.Function;
 
 import static j8spec.J8Spec.*;
 import static org.junit.Assert.*;
@@ -13,8 +14,18 @@ import static org.junit.Assert.*;
 @DefinedOrder
 @RunWith(J8SpecRunner.class)
 public class MxCoreTest {
+
   static { LoggerInit.apply(); }
   private static final Logger log = LoggerFactory.getLogger(MxCoreTest.class);
+
+  public static Function<Long, Void> sleep = (ms) -> {
+    try {
+      Thread.sleep(ms);
+      return null;
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  };
 
   static {
     it("Defines request rules", () -> {

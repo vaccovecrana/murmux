@@ -1,3 +1,7 @@
+![Murmux](./murmux.png)
+
+# Murmux
+
 Zero-dependencies HTTP Framework based on ExpressJS
 
 # Getting Started
