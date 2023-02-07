@@ -28,7 +28,7 @@ public class MxMiddlewareTest {
     LoggerInit.apply();
     beforeAll(() -> mx = new Murmux("localhost")
       .rootHandler(xc -> xc.withStatus(_204).commit())
-      .listen(8080));
+      .listen(8081));
 
     if (GraphicsEnvironment.isHeadless()) {
       MxCoreTest.sleep.apply(25000L);
@@ -52,7 +52,7 @@ public class MxMiddlewareTest {
       var cookieName = "sessionId";
       var loggedOut = "Logged out";
       var active = "Session active";
-      var sessUrl = "http://localhost:8080/session";
+      var sessUrl = "http://localhost:8081/session";
 
       mx.rootHandler(
         new MxRouter()
@@ -93,7 +93,7 @@ public class MxMiddlewareTest {
     });
 
     it("Accepts CORS requests", () -> {
-      var url = "http://localhost:8080";
+      var url = "http://localhost:8081";
       mx.rootHandler(new MxCors(
         new MxCors.Options()
           .withMethods(MxMethod.OPTIONS, MxMethod.GET, MxMethod.POST)
@@ -117,11 +117,11 @@ public class MxMiddlewareTest {
           .prefix("/src", new MxStatic(MxStatic.Origin.FileSystem, Paths.get(".")))
           .prefix("/murmux.png", new MxStatic(MxStatic.Origin.Classpath, Paths.get("/")))
       );
-      var getFs = new Get("http://localhost:8080/src/test/resources/murmux.png");
+      var getFs = new Get("http://localhost:8081/src/test/resources/murmux.png");
       try (var res = getFs.execute()) {
         assertEquals(_200.code, res.getResponseCode());
       }
-      var getCp = new Get("http://localhost:8080/murmux.png");
+      var getCp = new Get("http://localhost:8081/murmux.png");
       try (var res = getCp.execute()) {
         assertEquals(_200.code, res.getResponseCode());
       }
