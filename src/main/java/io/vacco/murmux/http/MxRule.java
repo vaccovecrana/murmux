@@ -4,7 +4,7 @@ import java.util.Objects;
 
 public class MxRule implements Comparable<MxRule> {
 
-  public static final String Colon = ":";
+  public static final String LCurly = "{", RCurly = "}";
 
   public MxMethod method;
   public String context;
@@ -16,7 +16,7 @@ public class MxRule implements Comparable<MxRule> {
   }
 
   public boolean hasPathParameters() {
-    return context.contains(Colon);
+    return context.contains(LCurly) || context.contains(RCurly);
   }
 
   public String id() {

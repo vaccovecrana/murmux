@@ -2,7 +2,7 @@ package io.vacco.murmux.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import java.io.*;
-import java.net.URI;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
@@ -143,6 +143,19 @@ public class MxExchange {
       new ByteArrayInputStream(body),
       body.length
     );
+  }
+
+  public MxExchange withBody(URL src) {
+    try {
+      var conn = src.openConnection();
+      this.responseBody = conn.getInputStream();
+      this.responseContentLength = conn.getContentLengthLong();
+      return this.withHeader(HContentType, conn.getContentType());
+    } catch (Exception e) {
+      throw new IllegalStateException(
+        "Unable to set URL response body: " + src, e
+      );
+    }
   }
 
   public MxExchange withBody(String mimeType, Path file) {

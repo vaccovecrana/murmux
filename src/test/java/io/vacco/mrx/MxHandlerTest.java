@@ -151,7 +151,7 @@ public class MxHandlerTest {
 
     it("Accepts parameter path requests", () -> {
       mx.rootHandler(new MxRouter()
-        .get("/book/:bookId", xc -> {
+        .get("/book/{bookId}", xc -> {
           assertNotNull(xc.getPathParam("bookId"));
           xc.commitJson(duckBookJson);
         })
@@ -190,7 +190,7 @@ public class MxHandlerTest {
     it("Rejects prefix route paths with parameters",
       c -> c.expected(IllegalArgumentException.class),
       () -> mx.rootHandler(new MxRouter()
-        .prefix("/momo/:lolId", xc -> xc.withStatus(_200)))
+        .prefix("/momo/{lolId}", xc -> xc.withStatus(_200)))
     );
 
     it("Accepts requests on prefix routes", () -> {
@@ -201,7 +201,7 @@ public class MxHandlerTest {
               logRequest.accept(xc);
               xc.commitJson(duckBookJson);
             })
-            .get("/api/book/:bookId", xc -> xc.withStatus(_200).withBody(json, duckBookJson).commit())
+            .get("/api/book/{bookId}", xc -> xc.withStatus(_200).withBody(json, duckBookJson).commit())
         )
         .prefix("/ui",
           new MxRouter()
@@ -266,6 +266,20 @@ public class MxHandlerTest {
       var login = new Get(httpLocalHost)
         .header(MxExchanges.HAuthorization, authValue);
       try (var res = login.execute()) {
+        var body = res.bodyAsString();
+        assertEquals(_200.code, res.getResponseCode());
+        log.info(body);
+      }
+    });
+
+    it("Serves URL stream responses", () -> {
+      mx.rootHandler(xc -> xc
+        .withStatus(_200)
+        .withBody(MxHandlerTest.class.getResource("/glossary.json"))
+        .commit()
+      );
+      var glossary = new Get(httpLocalHost);
+      try (var res = glossary.execute()) {
         var body = res.bodyAsString();
         assertEquals(_200.code, res.getResponseCode());
         log.info(body);

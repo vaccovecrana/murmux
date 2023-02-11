@@ -23,13 +23,14 @@ public class MxPaths {
     int ui = 0, fi = 0;
 
     for (; fi < fc.length && ui < uc.length; fi++, ui++) {
-      if (fc[fi] == ':') {
+      if (fc[fi] == '{') {
         key.setLength(0);
         val.setLength(0);
         fi++;
-        while (fi < fc.length && fc[fi] != '/') {
+        while (fi < fc.length && fc[fi] != '}') {
           key.append(fc[fi++]);
         }
+        fi++;
         while (ui < uc.length && uc[ui] != '/') {
           val.append(uc[ui++]);
         }

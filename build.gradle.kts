@@ -1,7 +1,7 @@
 plugins { id("io.vacco.oss.gitflow") version "0.9.8" }
 
 group = "io.vacco.murmux"
-version = "2.0.0"
+version = "2.1.0"
 
 configure<io.vacco.oss.gitflow.GsPluginProfileExtension> {
   addJ8Spec()

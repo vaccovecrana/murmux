@@ -37,12 +37,13 @@ public class MxCoreTest {
       assertNotEquals(rule0, rule1);
     });
     it("Parses URL request paths with parameters", () -> {
-      var p0 = "/hello/world/:placeId";
-      var t0 = "/hello/world/99988";
+      var p0 = "/hello/world/{placeId}/region/{regionId}";
+      var t0 = "/hello/world/12/region/2";
       var lol = MxPaths.matchUrl(p0, t0);
       assertNotNull(lol);
       assertFalse(lol.isEmpty());
-      assertEquals(lol.get("placeId"), "99988");
+      assertEquals(lol.get("placeId"), "12");
+      assertEquals(lol.get("regionId"), "2");
     });
   }
 }

@@ -13,7 +13,7 @@ public class MxRouter implements MxHandler {
   private final Set<MxRule>         pathSet   = new TreeSet<>();
   private final Set<MxRule>         prefixSet = new TreeSet<>();
 
-  private MxRouter add(MxMethod method, String context, MxHandler handler) {
+  public MxRouter add(MxMethod method, String context, MxHandler handler) {
     if (context == null || !context.startsWith("/")) {
       throw new IllegalArgumentException("Invalid context route: " + context);
     }
@@ -65,7 +65,7 @@ public class MxRouter implements MxHandler {
   }
 
   public MxRouter prefix(String contextPrefix, MxHandler handler) {
-    if (contextPrefix.contains(MxRule.Colon)) {
+    if (contextPrefix.contains(MxRule.LCurly) || contextPrefix.contains(MxRule.RCurly)) {
       throw new IllegalArgumentException(String.format(
         "Prefix route [%s] cannot contain path variable declarations.",
         contextPrefix
