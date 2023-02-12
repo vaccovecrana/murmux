@@ -49,7 +49,8 @@ public class MxMiddlewareTest {
             cookieName, 3000,
             () -> new MxSession<>().withData(45L),
             nxc -> {
-              MxSession<Long> session = nxc.loadMiddlewareContent(MxMemory.class);
+              @SuppressWarnings("unchecked")
+              var session = (MxSession<Long>) nxc.getAttachment(MxSession.class);
               assertEquals(45L, session.data.longValue());
               nxc.commitText(active);
             },

@@ -30,7 +30,7 @@ public class MxExchange {
   private Long        responseContentLength;
   private Boolean     responseCommitted = false;
 
-  public Map<Class<? extends MxHandler>, Object> middleware = new ConcurrentHashMap<>();
+  public Map<Class<?>, Object> attachments = new ConcurrentHashMap<>();
 
   public MxExchange(HttpExchange io) {
     this.io = Objects.requireNonNull(io);
@@ -235,13 +235,14 @@ public class MxExchange {
    * ===========================================================
    */
 
-  public void addMiddlewareContent(MxHandler middleware, Object middlewareData) {
-    this.middleware.put(middleware.getClass(), middlewareData);
+  public void putAttachment(Object att) {
+    Objects.requireNonNull(att);
+    this.attachments.put(att.getClass(), att);
   }
 
   @SuppressWarnings("unchecked")
-  public <T> T loadMiddlewareContent(Class<? extends MxHandler> mwClass) {
-    return (T) middleware.get(mwClass);
+  public <T> T getAttachment(Class<T> attClass) {
+    return (T) attachments.get(attClass);
   }
 
 }

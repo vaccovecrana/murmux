@@ -1,12 +1,16 @@
 package io.vacco.murmux.middleware;
 
 import io.vacco.murmux.http.*;
-
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+/**
+ * Cookie based, in-memory session handler.
+ *
+ * @param <T> the backend session type.
+ */
 public class MxMemory<T> implements MxHandler {
 
   private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
@@ -47,10 +51,10 @@ public class MxMemory<T> implements MxHandler {
 
   @Override public void handle(MxExchange xc) {
     var cookie = xc.cookies.get(cookieName);
-    MxSession<T> sess;
+    MxSession<T> ses;
     if (cookie != null && sessions.containsKey(cookie.value)) {
-      sess = sessions.get(cookie.value);
-      var diffMs = System.currentTimeMillis() - sess.createdUtcMs;
+      ses = sessions.get(cookie.value);
+      var diffMs = System.currentTimeMillis() - ses.createdUtcMs;
       if (diffMs >= maxAgeMs) {
         // TODO set cookie invalidation cookie properties for browser.
         // TODO https://stackoverflow.com/a/5285982/491160
@@ -62,11 +66,11 @@ public class MxMemory<T> implements MxHandler {
       var nowUtcMs = System.currentTimeMillis();
       var token = randomToken(32);
       cookie = new MxCookie(cookieName, token).withMaxAge(maxAgeMs);
-      sess = sessionSupplier.get().withCreatedUtcMs(nowUtcMs);
+      ses = sessionSupplier.get().withCreatedUtcMs(nowUtcMs);
       xc.withCookie(cookie);
-      sessions.put(token, sess);
+      sessions.put(token, ses);
     }
-    xc.addMiddlewareContent(this, sess);
+    xc.putAttachment(ses);
     next.handle(xc);
   }
 }

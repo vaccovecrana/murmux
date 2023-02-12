@@ -15,7 +15,8 @@ public class CookieSession {
             () -> new MxSession<Integer>().withData(0),
             xc -> {
               // Retrieve session using cookie value.
-              MxSession<Integer> session = xc.loadMiddlewareContent(MxMemory.class);
+              @SuppressWarnings("unchecked")
+              var session = (MxSession<Integer>) xc.getAttachment(MxSession.class);
               // We want to implement a simple counter.
               session.withData(session.data + 1);
               // Send an info message
