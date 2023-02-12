@@ -13,6 +13,14 @@ public class MxRouter implements MxHandler {
   private final Set<MxRule>         pathSet   = new TreeSet<>();
   private final Set<MxRule>         prefixSet = new TreeSet<>();
 
+  private String    name;
+  private MxHandler noMatch;
+
+  public MxRouter withName(String name) {
+    this.name = Objects.requireNonNull(name);
+    return this;
+  }
+
   public MxRouter add(MxMethod method, String context, MxHandler handler) {
     if (context == null || !context.startsWith("/")) {
       throw new IllegalArgumentException("Invalid context route: " + context);
@@ -78,6 +86,11 @@ public class MxRouter implements MxHandler {
     return add(MxMethod.ANY, context, handler);
   }
 
+  public MxRouter noMatch(MxHandler h) {
+    this.noMatch = Objects.requireNonNull(h);
+    return this;
+  }
+
   public MxRule handlerFor(String ctx, String method,
                            Consumer<Map<String, String>> onPathParams) {
     var mxm = MxMethod.valueOf(method);
@@ -109,7 +122,7 @@ public class MxRouter implements MxHandler {
         return r;
       }
     }
-    // no match
+    // nothing matched
     return null;
   }
 
@@ -123,8 +136,15 @@ public class MxRouter implements MxHandler {
     if (rule != null) {
       xc.context = rule.context;
       rule.handler.handle(xc);
+    } else if (noMatch != null) {
+      noMatch.handle(xc);
     } else {
-      log.warn("No router rule matched [{} {}]", method, context);
+      log.warn(
+        "{}{} - No rule matched [{} {}]",
+        getClass().getSimpleName(),
+        name == null ? "" : String.format("(%s)", name),
+        method, context
+      );
     }
   }
 }

@@ -37,6 +37,19 @@ public class MxMiddlewareTest {
 
     final Logger log = LoggerFactory.getLogger(MxMiddlewareTest.class);
 
+    it("Rejects routers with invalid paths",
+      c -> c.expected(IllegalArgumentException.class),
+      () -> new MxRouter()
+        .put("/put", xc -> {})
+        .patch("/patch", xc -> {})
+        .delete("/delete", xc -> {})
+        .connect("/connect", xc -> {})
+        .options("/options", xc -> {})
+        .trace("/trace", xc -> {})
+        .head("/head", xc -> {})
+        .any("*/some/weird/path", xc -> {})
+    );
+
     it("Tracks cookie based sessions", () -> {
       var cookieName = "sessionId";
       var loggedOut = "Logged out";
@@ -102,14 +115,24 @@ public class MxMiddlewareTest {
     it("Accepts static content requests", () -> {
       mx.rootHandler(
         new MxRouter()
+          .withName("Robert Paulson")
           .prefix("/src", new MxStatic(MxStatic.Origin.FileSystem, Paths.get(".")))
           .prefix("/murmux.png", new MxStatic(MxStatic.Origin.Classpath, Paths.get("/")))
+          .noMatch(
+            xc -> xc
+              .withStatus(_502)
+              .withBody(MxMiddlewareTest.class.getResource("/flamingo.txt"))
+              .commit()
+          )
       );
       assertEquals(_200.code, client.send(
         GET("/src/test/resources/murmux.png"), ofByteArray()
       ).statusCode());
       assertEquals(_200.code, client.send(
         GET("/murmux.png"), ofByteArray()
+      ).statusCode());
+      assertEquals(_502.code, client.send(
+        GET("/nowhere"), ofString()
       ).statusCode());
     });
 
