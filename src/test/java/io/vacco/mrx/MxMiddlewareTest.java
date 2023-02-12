@@ -1,6 +1,6 @@
 package io.vacco.mrx;
 
-import com.ultraspatial.httpsender.*;
+import com.github.mizosoft.methanol.*;
 import examples.LoggerInit;
 import io.vacco.murmux.Murmux;
 import io.vacco.murmux.http.*;
@@ -9,12 +9,13 @@ import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
-import java.awt.*;
-import java.lang.reflect.Field;
-import java.nio.file.Paths;
-import java.util.Map;
 
+import java.nio.file.Paths;
+
+import static java.net.http.HttpResponse.BodyHandlers.*;
+import static com.github.mizosoft.methanol.MutableRequest.*;
 import static org.junit.Assert.*;
+import static io.vacco.murmux.http.MxExchanges.*;
 import static io.vacco.murmux.http.MxStatus.*;
 import static j8spec.J8Spec.*;
 
@@ -23,6 +24,10 @@ import static j8spec.J8Spec.*;
 public class MxMiddlewareTest {
 
   public static Murmux mx;
+  public static final Methanol client = Methanol
+    .newBuilder()
+    .baseUri("http://localhost:8081")
+    .build();
 
   static {
     LoggerInit.apply();
@@ -30,29 +35,12 @@ public class MxMiddlewareTest {
       .rootHandler(xc -> xc.withStatus(_204).commit())
       .listen(8081));
 
-    if (GraphicsEnvironment.isHeadless()) {
-      MxCoreTest.sleep.apply(25000L);
-    } else {
-      MxCoreTest.sleep.apply(3000L);
-    }
-
     final Logger log = LoggerFactory.getLogger(MxMiddlewareTest.class);
 
-    // TODO https://github.com/alasdairg/http-sender/issues/2
-    Field fHeaders;
-    try {
-      fHeaders = Response.class.getDeclaredField("headers");
-      fHeaders.setAccessible(true);
-    } catch (NoSuchFieldException e) {
-      throw new RuntimeException(e);
-    }
-
     it("Tracks cookie based sessions", () -> {
-
       var cookieName = "sessionId";
       var loggedOut = "Logged out";
       var active = "Session active";
-      var sessUrl = "http://localhost:8081/session";
 
       mx.rootHandler(
         new MxRouter()
@@ -69,27 +57,27 @@ public class MxMiddlewareTest {
           ))
       );
 
-      var getSession = new Get(sessUrl);
-      var cookieA = new MxCookie[1];
-      try (var res = getSession.execute()) {
-        assertEquals(_200.code, res.getResponseCode());
-        assertEquals(res.bodyAsString(), active);
-        @SuppressWarnings("unchecked")
-        var headers = (Map<String, HeaderValues>) fHeaders.get(res);
-        var raw = headers.get(null).getValues().get(0);
-        var cookies = MxExchanges.parseCookiesTxt(raw);
-        log.info("Raw: {}", raw);
-        log.info("Cookies: {}", cookies);
-        cookieA[0] = cookies.get(cookieName);
-      }
+      var res = client.send(GET("/session"), ofString());
+      assertEquals(_200.code, res.statusCode());
+      assertEquals(res.body(), active);
 
-      MxCoreTest.sleep.apply(4000L);
+      var oCookie = res.headers().firstValue(HSetCookie);
+      assertTrue(oCookie.isPresent());
 
-      var getSession2 = new Get(sessUrl).header(MxExchanges.HCookie, cookieA[0].toString());
-      try (var res = getSession2.execute()) {
-        assertEquals(_200.code, res.getResponseCode());
-        assertEquals(res.bodyAsString(), loggedOut);
-      }
+      var cookies = MxExchanges.parseCookiesTxt(oCookie.get());
+      log.info("Raw: {}", oCookie.get());
+      log.info("Cookies: {}", cookies);
+
+      Thread.sleep(4000);
+
+      var res1 = client.send(
+        GET("/session").header(HCookie, cookies.get(cookieName).toString()),
+        ofString()
+      );
+      assertEquals(_302.code, res1.statusCode());
+      var oLoc = res1.headers().firstValue(HLocation);
+      assertTrue(oLoc.isPresent());
+      assertEquals(oLoc.get(), "/logout");
     });
 
     it("Accepts CORS requests", () -> {
@@ -101,14 +89,13 @@ public class MxMiddlewareTest {
           .withOrigin(url),
         xc -> xc.commitText("CORS API request")
       ));
-      var opts = new Options(url);
-      try (var res = opts.execute()) {
-        assertEquals(_204.code, res.getResponseCode());
-      }
-      var get = new Get(url);
-      try (var res = get.execute()) {
-        assertEquals(_200.code, res.getResponseCode());
-      }
+      assertEquals(_204.code,
+        client.send(
+          MutableRequest.create("/").method("OPTIONS", BodyPublishers.noBody()),
+          ofString()
+        ).statusCode()
+      );
+      assertEquals(_200.code, client.send(GET("/"), ofString()).statusCode());
     });
 
     it("Accepts static content requests", () -> {
@@ -117,14 +104,12 @@ public class MxMiddlewareTest {
           .prefix("/src", new MxStatic(MxStatic.Origin.FileSystem, Paths.get(".")))
           .prefix("/murmux.png", new MxStatic(MxStatic.Origin.Classpath, Paths.get("/")))
       );
-      var getFs = new Get("http://localhost:8081/src/test/resources/murmux.png");
-      try (var res = getFs.execute()) {
-        assertEquals(_200.code, res.getResponseCode());
-      }
-      var getCp = new Get("http://localhost:8081/murmux.png");
-      try (var res = getCp.execute()) {
-        assertEquals(_200.code, res.getResponseCode());
-      }
+      assertEquals(_200.code, client.send(
+        GET("/src/test/resources/murmux.png"), ofByteArray()
+      ).statusCode());
+      assertEquals(_200.code, client.send(
+        GET("/murmux.png"), ofByteArray()
+      ).statusCode());
     });
 
     it("Stops the server", () -> mx.stop());

@@ -12,7 +12,7 @@ val api by configurations
 
 dependencies {
   api("org.slf4j:slf4j-api:2.0.6")
+  testImplementation("com.github.mizosoft.methanol:methanol:1.7.0")
   testImplementation("io.vacco.shax:shax:2.0.6.0.1.0")
-  testImplementation("com.ultraspatial:http-sender:1.1")
   testImplementation("org.slf4j:jul-to-slf4j:2.0.6")
 }

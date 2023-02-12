@@ -18,15 +18,6 @@ public class MxCoreTest {
   static { LoggerInit.apply(); }
   private static final Logger log = LoggerFactory.getLogger(MxCoreTest.class);
 
-  public static Function<Long, Void> sleep = (ms) -> {
-    try {
-      Thread.sleep(ms);
-      return null;
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-  };
-
   static {
     it("Defines request rules", () -> {
       var rule0 = MxRule.of(MxMethod.GET.method, "/hello", null);
