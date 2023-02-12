@@ -172,7 +172,8 @@ public class MxExchange {
 
   public MxExchange withBody(Path file) {
     try {
-      return this.withBody(Files.probeContentType(file), file);
+      var ct = Files.probeContentType(file);
+      return this.withBody(ct == null ? MxMime.bin.type : ct, file);
     } catch (Exception e) {
       throw new IllegalStateException(
         "Unable to set file response body: " + file, e

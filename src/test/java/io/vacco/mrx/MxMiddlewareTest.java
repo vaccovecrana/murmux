@@ -121,7 +121,7 @@ public class MxMiddlewareTest {
           .noMatch(
             xc -> xc
               .withStatus(_502)
-              .withBody(MxMiddlewareTest.class.getResource("/flamingo.txt"))
+              .withBody(MxMime.txt, Paths.get("./src/test/resources/flamingo.txt"))
               .commit()
           )
       );
@@ -133,6 +133,32 @@ public class MxMiddlewareTest {
       ).statusCode());
       assertEquals(_502.code, client.send(
         GET("/nowhere"), ofString()
+      ).statusCode());
+    });
+
+    it("Resolves media types for unknown static filesystem content", () ->{
+      mx.rootHandler(
+        new MxRouter().get(
+          "/src/test/resources/data.map",
+          new MxStatic(MxStatic.Origin.FileSystem, Paths.get("."))
+            .withNoTypeResolver((p, o) -> MxMime.bin.type)
+        )
+      );
+      assertEquals(_200.code, client.send(
+        GET("/src/test/resources/data.map"), ofByteArray()
+      ).statusCode());
+    });
+
+    it("Resolves media types for unknown static classpath content", () ->{
+      mx.rootHandler(
+        new MxRouter().get(
+          "/data.map",
+          new MxStatic(MxStatic.Origin.Classpath, Paths.get("/"))
+            .withNoTypeResolver((p, o) -> MxMime.bin.type)
+        )
+      );
+      assertEquals(_200.code, client.send(
+        GET("/data.map"), ofByteArray()
       ).statusCode());
     });
 
