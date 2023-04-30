@@ -137,12 +137,12 @@ A simple in-memory cookie-session middleware is provided:
 
 Requires Gradle 7.1 or later.
 
-Create a file with the following content at `~/.gsOrgConfig`:
+Create a file with the following content at `~/.gsOrgConfig.json`:
 
 ```
 {
   "orgId": "vacco-oss",
-  "orgConfigUrl": "https://vacco-oss.s3.us-east-2.amazonaws.com/vacco-oss.json",
+  "orgConfigUrl": "https://vacco-oss.s3.us-east-2.amazonaws.com/vacco-oss.json"
 }
 ```
 
