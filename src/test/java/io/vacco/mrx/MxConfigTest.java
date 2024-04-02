@@ -7,7 +7,8 @@ import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 
 import static com.github.mizosoft.methanol.MutableRequest.GET;
-import static io.vacco.murmux.http.MxStatus._204;
+import static io.vacco.murmux.http.MxExchanges.HCacheControl;
+import static io.vacco.murmux.http.MxStatus.*;
 import static j8spec.J8Spec.*;
 import static java.net.http.HttpResponse.BodyHandlers.ofString;
 import static org.junit.Assert.*;
@@ -33,10 +34,11 @@ public class MxConfigTest {
         var res0 = client.send(GET("/"), ofString());
         assertEquals(_204.code, res0.statusCode());
       });
-      it("Cannot accept requests with more than 4 headers", () -> {
-        mx = mx.configMaxRequestHeaders(4);
-        // TODO zhaoyuango to implement. How can we send a GET request with 5 headers or more?
-        // assertEquals(_500.code, res0.statusCode());
+
+      it("Cannot accept requests with more than 6 headers", () -> {
+        mx = mx.configMaxRequestHeaders(6);
+        var res3 = client.send(GET("/"), ofString());
+        assertEquals(_500.code, res3.statusCode());
       });
     });
   }
