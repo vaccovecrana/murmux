@@ -1,13 +1,13 @@
 package io.vacco.mrx;
 
 import com.github.mizosoft.methanol.Methanol;
+import examples.LoggerInit;
 import io.vacco.murmux.Murmux;
 import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 
 import static com.github.mizosoft.methanol.MutableRequest.GET;
-import static io.vacco.murmux.http.MxExchanges.HCacheControl;
 import static io.vacco.murmux.http.MxStatus.*;
 import static j8spec.J8Spec.*;
 import static java.net.http.HttpResponse.BodyHandlers.ofString;
@@ -21,13 +21,15 @@ public class MxConfigTest {
 
   public static final Methanol client = Methanol
     .newBuilder()
-    .baseUri("http://localhost:8080")
+    .baseUri("http://localhost:8083")
     .build();
+
+  static { LoggerInit.apply(); }
 
   static {
     beforeAll(() -> mx = new Murmux()
       .rootHandler(xc -> xc.withStatus(_204).commit())
-      .listen(8080));
+      .listen(8083));
 
     describe("Server config options", () -> {
       it("Can accept requests with the default number of headers", () -> {
@@ -36,10 +38,14 @@ public class MxConfigTest {
       });
 
       it("Cannot accept requests with more than 6 headers", () -> {
-        mx = mx.configMaxRequestHeaders(6);
-        var res3 = client.send(GET("/"), ofString());
+        var osName = System.getProperty("os.name");
+        mx = mx.configMaxRequestHeaders(osName.equals("Mac OS X") ? 5 : 6);
+        var req = GET("/");
+        var res3 = client.send(req, ofString());
         assertEquals(_500.code, res3.statusCode());
       });
     });
+
+    it("Stops the server", () -> mx.stop());
   }
 }
