@@ -12,10 +12,14 @@ public class Murmux {
 
   private static final Logger log = LoggerFactory.getLogger(Murmux.class);
 
+  private static final String ERROR_TOO_MANY_HEADERS = "Too many headers";
+
   private String host;
   private HttpServer httpServer;
   private Executor executor = Executors.newCachedThreadPool();
   private MxHandler root;
+
+  private int maxHeaders = Integer.MAX_VALUE;
 
   /**
    * Bind to a host name with a custom executor.
@@ -63,6 +67,9 @@ public class Murmux {
         httpServer.setExecutor(executor);
         httpServer.createContext("/", io -> {
           try {
+            if (io.getRequestHeaders().size() > this.maxHeaders) {
+              throw new IllegalStateException(ERROR_TOO_MANY_HEADERS);
+            }
             var xc = new MxExchange(io);
             root.handle(xc);
             if (!xc.isCommitted()) {
@@ -86,6 +93,19 @@ public class Murmux {
         throw new IllegalStateException("Server initialization error", e);
       }
     }, String.format("%s-IO", Murmux.class.getName())).start();
+    return this;
+  }
+
+  /**
+   * Set the maximum number of allowed headers.
+   * @param maxHeaders incoming request header limit.
+   * @return this instance
+   */
+  public Murmux configMaxRequestHeaders(int maxHeaders) {
+    if (maxHeaders < 0) {
+      throw new IllegalArgumentException(ERROR_TOO_MANY_HEADERS + " " + maxHeaders);
+    }
+    this.maxHeaders = maxHeaders;
     return this;
   }
 
