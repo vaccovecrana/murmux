@@ -41,8 +41,15 @@ public class MxConfigTest {
         var osName = System.getProperty("os.name");
         mx = mx.configMaxRequestHeaders(osName.equals("Mac OS X") ? 5 : 6);
         var req = GET("/");
-        var res3 = client.send(req, ofString());
-        assertEquals(_500.code, res3.statusCode());
+        var res = client.send(req, ofString());
+        assertEquals(_500.code, res.statusCode());
+      });
+
+      it("Cannot accept header greater than 64 characters", () -> {
+        mx = mx.configMaxHeaderSize(39).configMaxRequestHeaders(Integer.MAX_VALUE);
+        var req = GET("/");
+        var res = client.send(req, ofString());
+        assertEquals(_500.code, res.statusCode());
       });
     });
 
