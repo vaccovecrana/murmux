@@ -13,6 +13,7 @@ public class Murmux {
   private static final Logger log = LoggerFactory.getLogger(Murmux.class);
 
   private static final String ERROR_TOO_MANY_HEADERS = "Too many headers";
+  private static final String ERROR_HEADER_TOO_LARGE = "Header size too large";
 
   private String host;
   private HttpServer httpServer;
@@ -20,6 +21,7 @@ public class Murmux {
   private MxHandler root;
 
   private int maxHeaders = Integer.MAX_VALUE;
+  private int maxHeaderSize = Integer.MAX_VALUE;
 
   /**
    * Bind to a host name with a custom executor.
@@ -70,6 +72,13 @@ public class Murmux {
             if (io.getRequestHeaders().size() > this.maxHeaders) {
               throw new IllegalStateException(ERROR_TOO_MANY_HEADERS);
             }
+            for (var header : io.getRequestHeaders().entrySet()) {
+              for (var value : header.getValue()) {
+                if (value.length() > this.maxHeaderSize) {
+                  throw new IllegalStateException(ERROR_HEADER_TOO_LARGE);
+                }
+              }
+            }
             var xc = new MxExchange(io);
             root.handle(xc);
             if (!xc.isCommitted()) {
@@ -98,14 +107,28 @@ public class Murmux {
 
   /**
    * Set the maximum number of allowed headers.
-   * @param maxHeaders incoming request header limit.
+   * @param maxHeaders incoming request header limit (inclusive).
    * @return this instance
    */
   public Murmux configMaxRequestHeaders(int maxHeaders) {
     if (maxHeaders < 0) {
-      throw new IllegalArgumentException(ERROR_TOO_MANY_HEADERS + " " + maxHeaders);
+      throw new IllegalArgumentException("Invalid max header limit " + maxHeaders);
     }
     this.maxHeaders = maxHeaders;
+    return this;
+  }
+
+  /**
+   * Set the maximum size, measured in characters, that a single
+   * request header can have.
+   * @param maxHeaderSize incoming request max header size (inclusive), measured in characters.
+   * @return this instance
+   */
+  public Murmux configMaxHeaderSize(int maxHeaderSize) {
+    if (maxHeaderSize < 0) {
+      throw new IllegalArgumentException("Invalid max header size " + maxHeaderSize);
+    }
+    this.maxHeaderSize = maxHeaderSize;
     return this;
   }
 
