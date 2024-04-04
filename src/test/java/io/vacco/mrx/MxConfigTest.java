@@ -44,6 +44,13 @@ public class MxConfigTest {
         var res3 = client.send(req, ofString());
         assertEquals(_500.code, res3.statusCode());
       });
+
+      it("Cannot accept header greater than 64 characters", () -> {
+        mx = mx.configMaxHeaderSize(39).configMaxRequestHeaders(Integer.MAX_VALUE);
+        var request = GET("/");
+        var response = client.send(request, ofString());
+        assertEquals(_500.code, response.statusCode());
+      });
     });
 
     it("Stops the server", () -> mx.stop());
