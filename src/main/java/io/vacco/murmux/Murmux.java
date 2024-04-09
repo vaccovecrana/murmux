@@ -14,6 +14,7 @@ public class Murmux {
 
   private static final String ERROR_TOO_MANY_HEADERS = "Too many headers";
   private static final String ERROR_HEADER_TOO_LARGE = "Header size too large";
+  private static final String ERROR_TOO_MANY_COOKIES = "Too many cookies";
 
   private String host;
   private HttpServer httpServer;
@@ -22,6 +23,7 @@ public class Murmux {
 
   private int maxHeaders = Integer.MAX_VALUE;
   private int maxHeaderSize = Integer.MAX_VALUE;
+  private int maxCookies = Integer.MAX_VALUE;
 
   /**
    * Bind to a host name with a custom executor.
@@ -80,6 +82,10 @@ public class Murmux {
               }
             }
             var xc = new MxExchange(io);
+            var cookies = xc.cookies.size();
+            if (cookies > this.maxCookies) {
+              throw new IllegalStateException(ERROR_TOO_MANY_COOKIES);
+            }
             root.handle(xc);
             if (!xc.isCommitted()) {
               log.warn(
@@ -129,6 +135,19 @@ public class Murmux {
       throw new IllegalArgumentException("Invalid max header size " + maxHeaderSize);
     }
     this.maxHeaderSize = maxHeaderSize;
+    return this;
+  }
+
+  /**
+   * Set the maximum number of cookies.
+   * @param maxCookies incoming request cookies limit (inclusive).
+   * @return this instance
+  */
+  public Murmux configMaxCookies(int maxCookies) {
+    if (maxCookies < 0) {
+      throw new IllegalArgumentException("Invalid max Cookies " + maxCookies);
+    }
+    this.maxCookies = maxCookies;
     return this;
   }
 
