@@ -45,9 +45,16 @@ public class MxConfigTest {
         assertEquals(_500.code, res.statusCode());
       });
 
-      it("Cannot accept header greater than 64 characters", () -> {
+      it("Cannot accept header with size greater than 39 characters", () -> {
         mx = mx.configMaxHeaderSize(39).configMaxRequestHeaders(Integer.MAX_VALUE);
         var req = GET("/");
+        var res = client.send(req, ofString());
+        assertEquals(_500.code, res.statusCode());
+      });
+
+      it("Cannot accept request with cookies greater than 0", () -> {
+        mx = mx.configMaxCookies(0).configMaxHeaderSize(Integer.MAX_VALUE);
+        var req = GET("/").header("Cookie", "username=test");
         var res = client.send(req, ofString());
         assertEquals(_500.code, res.statusCode());
       });
