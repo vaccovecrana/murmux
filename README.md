@@ -65,7 +65,7 @@ You can create handlers for all [request-methods](https://developer.mozilla.org/
 
 ### URL Parameters
 
-Sometimes you want to create dynamic URLs where some parts are not static. With the `:` operator you can create variables in the URL which will be saved later in a `HashMap`.
+Sometimes you want to create dynamic URLs where some parts are not static. With the `{}` operator you can create variables in the URL which will be saved later in a `HashMap`.
 
 Example request: `GET /posts/john/all`:
 
@@ -81,7 +81,7 @@ Example request: `GET /posts?page=12&from=john`:
 
 ## Cookies
 
-With `req.getCookie(NAME)` you can get a cookie by his name, and with `res.setCookie(NAME, VALUE)` you can easily set a cookie.
+With `req.cookies.get(NAME)` you can get a cookie by his name, and with `res.withCookie(NAME, VALUE)` you can easily set a cookie.
 
 Example request: `GET /setcookie` and `GET /showcookie`:
 
@@ -89,7 +89,7 @@ Example request: `GET /setcookie` and `GET /showcookie`:
 
 ## Form data
 
-Use `req.getFormQuery(NAME)` to receive values from input elements of an HTML-Form.
+Use `req.getFormParam(NAME)` to receive values from input elements of an HTML-Form.
 
 [FormData](./src/test/java/examples/FormData.java)
 

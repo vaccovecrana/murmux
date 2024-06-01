@@ -6,7 +6,7 @@ import j8spec.annotation.DefinedOrder;
 import j8spec.junit.J8SpecRunner;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
-import java.util.function.Function;
+import java.time.Instant;
 
 import static j8spec.J8Spec.*;
 import static org.junit.Assert.*;
@@ -35,6 +35,14 @@ public class MxCoreTest {
       assertFalse(lol.isEmpty());
       assertEquals(lol.get("placeId"), "12");
       assertEquals(lol.get("regionId"), "2");
+    });
+    it("Makes cookies", () -> {
+      var cook = new MxCookie("sess", Integer.toHexString(123456))
+        .withExpire(Instant.now().plusMillis(10000))
+        .withHttpOnly(true)
+        .withMaxAge(300_000)
+        .withSecure(true);
+      log.info(cook.toString());
     });
   }
 }

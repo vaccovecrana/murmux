@@ -158,11 +158,11 @@ public class MxExchange {
     }
   }
 
-  public MxExchange withBody(String mimeType, Path file) {
+  public MxExchange withBody(String contentType, Path file) {
     try {
       this.responseContentLength = Files.size(file);
       this.responseBody = Files.newInputStream(file);
-      return this.withHeader(HContentType, mimeType);
+      return this.withHeader(HContentType, contentType);
     } catch (Exception e) {
       throw new IllegalStateException(
         "Unable to set file response body: " + file, e
@@ -181,8 +181,8 @@ public class MxExchange {
     }
   }
 
-  public MxExchange withBody(MxMime mime, Path file) {
-    return this.withBody(mime.type, file);
+  public MxExchange withBody(MxMime contentType, Path file) {
+    return this.withBody(contentType.type, file);
   }
 
   public MxExchange commit() {

@@ -8,10 +8,7 @@ import java.nio.file.*;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.*;
-
-import static java.util.stream.Collectors.toMap;
 
 public class MxExchanges {
 
@@ -143,14 +140,15 @@ public class MxExchanges {
     if (raw == null) {
       return Collections.emptyMap();
     }
-    return Arrays.stream(raw.split(entrySep))
-      .map(se -> se.split(valSep))
-      .collect(toMap(
-        sa -> sa[0],
-        sa -> sa.length == 2
-          ? (urlDecode ? URLDecoder.decode(sa[1], StandardCharsets.UTF_8) : sa[1])
-          : ""
-      ));
+    var kv = new LinkedHashMap<String, String>();
+    for (var se : raw.split(entrySep)) {
+      var sa = se.split(valSep);
+      var val = sa.length == 2
+        ? (urlDecode ? URLDecoder.decode(sa[1], StandardCharsets.UTF_8) : sa[1])
+        : "";
+      kv.put(sa[0], val);
+    }
+    return kv;
   }
 
   public static Map<String, String> parseFormKv(String raw) {
@@ -158,10 +156,13 @@ public class MxExchanges {
   }
 
   public static Map<String, MxCookie> parseCookiesTxt(String raw) {
-    return parseKv(raw, "; ", "=", false)
-      .entrySet().stream()
-      .map(e -> new MxCookie(e.getKey().trim(), e.getValue()))
-      .collect(toMap(mxc -> mxc.name, Function.identity()));
+    var cookiesRaw = parseKv(raw, "; ", "=", false);
+    var cookies = new LinkedHashMap<String, MxCookie>();
+    for (var e : cookiesRaw.entrySet()) {
+      var k = e.getKey().trim();
+      cookies.put(k, new MxCookie(k, e.getValue()));
+    }
+    return cookies;
   }
 
   public static Map<String, MxCookie> parseCookies(HttpExchange io) {
