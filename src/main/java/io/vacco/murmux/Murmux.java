@@ -1,12 +1,14 @@
 package io.vacco.murmux;
 
-import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.*;
 import io.vacco.murmux.http.*;
+import io.vacco.murmux.middleware.*;
 import org.slf4j.*;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.function.BiConsumer;
 
 public class Murmux {
 
@@ -16,6 +18,8 @@ public class Murmux {
   private HttpServer httpServer;
   private Executor executor = Executors.newCachedThreadPool();
   private MxHandler root;
+  private MxHandler closeHandler = new MxClose();
+  private BiConsumer<HttpExchange, Exception> errorHandler = new MxError();
 
   /**
    * Bind to a host name with a custom executor.
@@ -28,20 +32,28 @@ public class Murmux {
   }
 
   /**
-   * Bind to a host name, and default executor.
+   * Bind to a host name, and use default executor.
    * @param host a host name
    */
   public Murmux(String host) {
     this.host = host;
   }
 
-  /**
-   * Bind to "localhost", and default executor.
-   */
+  /** Bind to "localhost", and use default executor */
   public Murmux() {}
 
   public Murmux rootHandler(MxHandler handler) {
     this.root = Objects.requireNonNull(handler);
+    return this;
+  }
+
+  public Murmux closeHandler(MxHandler handler) {
+    this.closeHandler = Objects.requireNonNull(handler);
+    return this;
+  }
+
+  public Murmux errorHandler(BiConsumer<HttpExchange, Exception> handler) {
+    this.errorHandler = Objects.requireNonNull(handler);
     return this;
   }
 
@@ -65,20 +77,9 @@ public class Murmux {
           try {
             var xc = new MxExchange(io);
             root.handle(xc);
-            if (!xc.isCommitted()) {
-              log.warn(
-                "Request did not commit: [{} {}]. Forcing close.",
-                io.getRequestMethod(), io.getRequestURI()
-              );
-              xc.withStatus(MxStatus._404).commit();
-            }
+            closeHandler.handle(xc);
           } catch (Exception e) {
-            log.error(
-              "Request processing error: [{} {}]. Forcing close.",
-              io.getRequestMethod(), io.getRequestURI(), e
-            );
-            io.sendResponseHeaders(MxStatus._500.code, 0);
-            io.close();
+            errorHandler.accept(io, e);
           }
         });
         httpServer.start();
@@ -89,16 +90,12 @@ public class Murmux {
     return this;
   }
 
-  /**
-   * Start the server on port 80.
-   */
+  /** Start the server on port 80. */
   public void listen() {
     listen(80);
   }
 
-  /**
-   * Stop the server.
-   */
+  /** Stop the server. */
   public void stop() {
     if (httpServer != null) {
       log.info("Stopping");

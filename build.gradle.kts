@@ -11,8 +11,8 @@ configure<io.vacco.oss.gitflow.GsPluginProfileExtension> {
 val api by configurations
 
 dependencies {
-  api("org.slf4j:slf4j-api:2.0.12")
+  api("org.slf4j:slf4j-api:2.0.16")
   testImplementation("com.github.mizosoft.methanol:methanol:1.7.0")
-  testImplementation("io.vacco.shax:shax:2.0.6.0.1.0")
-  testImplementation("org.slf4j:jul-to-slf4j:2.0.13")
+  testImplementation("io.vacco.shax:shax:2.0.16.0.4.3")
+  testImplementation("org.slf4j:jul-to-slf4j:2.0.16")
 }
