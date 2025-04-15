@@ -5,7 +5,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
-      - uses: vaccovecrana/gitflow-oss-java-slim@0.9.8
+      - uses: vaccovecrana/gitflow-oss-java-slim@0.9.9
         with:
           orgConfig: https://vacco-oss.s3.us-east-2.amazonaws.com/vacco-oss.json
         env:

@@ -1,14 +1,11 @@
 package io.vacco.murmux.middleware;
 
 import io.vacco.murmux.http.*;
-import org.slf4j.*;
 import java.nio.file.*;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
 public class MxStatic implements MxHandler {
-
-  private static final Logger log = LoggerFactory.getLogger(MxStatic.class);
 
   public enum Origin { FileSystem, Classpath }
 
@@ -53,7 +50,7 @@ public class MxStatic implements MxHandler {
             .commit();
       }
     } catch (Exception e) {
-      log.error("Unable to serve content: [{}]", target, e);
+      throw new IllegalStateException(e);
     }
   }
 }

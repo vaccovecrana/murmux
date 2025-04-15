@@ -46,6 +46,16 @@ public class MxCookie {
     return this;
   }
 
+  public MxCookie withSecure(boolean secure) {
+    this.secure = secure;
+    return this;
+  }
+
+  public MxCookie withHttpOnly(boolean httpOnly) {
+    this.httpOnly = httpOnly;
+    return this;
+  }
+
   public String serialize() {
     if (name == null || value == null) return null;
     var b = new StringBuilder().append(name).append("=").append(value);
