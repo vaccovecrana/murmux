@@ -72,8 +72,7 @@ public class MxStatic implements MxHandler {
     return rct;
   }
 
-  @Override public void handle(MxExchange xc) {
-    var path = xc.getURI().getPath();
+  public void handleWithPath(MxExchange xc, String path) {
     var target = contentRoot.resolve(path.substring(1));
     try {
       switch (origin) {
@@ -93,4 +92,9 @@ public class MxStatic implements MxHandler {
       throw new IllegalStateException(e);
     }
   }
+
+  @Override public void handle(MxExchange xc) {
+    handleWithPath(xc, xc.getURI().getPath());
+  }
+
 }
