@@ -109,7 +109,7 @@ Core middlewares are included in [MxMiddleware](./src/main/java/io/vacco/murmux/
 
 #### CORS
 
-To realize a CORS api you can use the CORS middleware.
+Create a CORS api with the CORS middleware.
 
 [Cors](./src/test/java/examples/Cors.java)
 
