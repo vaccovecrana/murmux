@@ -1,4 +1,4 @@
-plugins { id("io.vacco.oss.gitflow") version "1.8.0" }
+plugins { id("io.vacco.oss.gitflow") version "1.8.1" }
 
 group = "io.vacco.murmux"
 version = "2.8.0"
