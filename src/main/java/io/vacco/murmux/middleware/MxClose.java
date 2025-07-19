@@ -1,36 +1,44 @@
 package io.vacco.murmux.middleware;
 
-import io.vacco.murmux.http.MxExchange;
-import io.vacco.murmux.http.MxHandler;
-import io.vacco.murmux.http.MxStatus;
-import org.slf4j.Logger;
+import com.sun.net.httpserver.HttpExchange;
+import io.vacco.murmux.http.*;
 
-public class MxClose implements MxHandler {
+import static io.vacco.murmux.http.MxLog.*;
 
-  private static final Logger log = org.slf4j.LoggerFactory.getLogger(MxClose.class);
+public class MxClose implements MxHandler, MxErrorHandler {
+
+  @Override public void accept(MxExchange xc, HttpExchange io, Exception e) {
+    try {
+      if (io != null) {
+        error("Exchange forcing close: [{} {}]", io.getRequestMethod(), io.getRequestURI());
+        if (e != null) {
+          debug("Exchange processing error", e);
+        }
+        if (xc != null && !xc.headersSent()) {
+          io.sendResponseHeaders(MxStatus._500.code, 0);
+        } else {
+          io.sendResponseHeaders(MxStatus._404.code, 0);
+        }
+        io.close();
+      }
+    } catch (Exception e0) {
+      error("Exchange closing error: [{} {}]", io.getRequestMethod(), io.getRequestURI(), e0);
+    } finally {
+      if (io != null) {
+        try {
+          io.close();
+        } catch (Exception e1) {
+          error("Exchange close failed: {}", io, e1);
+        }
+      }
+    }
+  }
 
   @Override public void handle(MxExchange xc) {
     try {
-      if (!xc.isCommitted()) {
-        log.warn(
-          "Request did not commit: [{} {}]. Forcing close.",
-          xc.io.getRequestMethod(), xc.io.getRequestURI()
-        );
-        var e = xc.getAttachment(Exception.class);
-        if (e != null) {
-          xc.withStatus(MxStatus._500).commit();
-        } else {
-          xc.withStatus(MxStatus._404).commit();
-        }
-      }
+      accept(xc, xc.io, xc.getAttachment(Exception.class));
     } catch (Exception e) {
-      if (log.isTraceEnabled()) {
-        log.trace(
-          "Unable to close request: [{} {}]",
-          xc.io.getRequestMethod(), xc.io.getRequestURI(),
-          e
-        );
-      }
+      accept(xc, xc.io, e);
     }
   }
 

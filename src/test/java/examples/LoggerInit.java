@@ -1,6 +1,5 @@
 package examples;
 
-import io.vacco.shax.logging.ShLogLevel;
 import io.vacco.shax.logging.ShOption;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import java.util.logging.Level;
@@ -14,7 +13,6 @@ public class LoggerInit {
 
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_DEVMODE, "true");
     ShOption.setSysProp(ShOption.IO_VACCO_SHAX_PRETTYPRINT, "true");
-    ShOption.setLoggerSysProp("com.ultraspatial", ShLogLevel.DEBUG);
   }
 
 }

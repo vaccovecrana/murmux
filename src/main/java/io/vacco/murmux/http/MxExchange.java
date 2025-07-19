@@ -23,12 +23,13 @@ public class MxExchange {
   public List<MxAuth>           auth;
   public Map<String, String>    pathParams = new HashMap<>();
   public String                 context;
-  public final MxMethod         method;
+  public MxMethod               method;
 
-  private MxStatus    responseStatus;
-  private InputStream responseBody;
-  private Long        responseContentLength;
-  private Boolean     responseCommitted = false;
+  private MxStatus    resStatus;
+  private InputStream resBody;
+  private Long        resLength;
+  private Boolean     resCommitted = false;
+  private Boolean     resHeaders   = false;
 
   public Map<Class<?>, Object> attachments = new ConcurrentHashMap<>();
 
@@ -85,7 +86,7 @@ public class MxExchange {
 
   /*
    * ===========================================================
-   *                    Response methods
+   *                    Response body methods
    * ===========================================================
    */
 
@@ -95,7 +96,7 @@ public class MxExchange {
   }
 
   public MxExchange withStatus(MxStatus status) {
-    this.responseStatus = Objects.requireNonNull(status);
+    this.resStatus = Objects.requireNonNull(status);
     return this;
   }
 
@@ -117,8 +118,8 @@ public class MxExchange {
   }
 
   public MxExchange withBody(String contentType, InputStream is, long contentLength) {
-    this.responseBody = Objects.requireNonNull(is);
-    this.responseContentLength = contentLength;
+    this.resBody = Objects.requireNonNull(is);
+    this.resLength = contentLength;
     return this.withHeader(
       HContentType, Objects.requireNonNull(contentType)
     );
@@ -148,8 +149,8 @@ public class MxExchange {
   public MxExchange withBody(URL src) {
     try {
       var conn = src.openConnection();
-      this.responseBody = conn.getInputStream();
-      this.responseContentLength = conn.getContentLengthLong();
+      this.resBody = conn.getInputStream();
+      this.resLength = conn.getContentLengthLong();
       return this.withHeader(HContentType, conn.getContentType());
     } catch (Exception e) {
       throw new IllegalStateException(
@@ -160,8 +161,8 @@ public class MxExchange {
 
   public MxExchange withBody(String contentType, Path file) {
     try {
-      this.responseContentLength = Files.size(file);
-      this.responseBody = Files.newInputStream(file);
+      this.resLength = Files.size(file);
+      this.resBody = Files.newInputStream(file);
       return this.withHeader(HContentType, contentType);
     } catch (Exception e) {
       throw new IllegalStateException(
@@ -185,20 +186,27 @@ public class MxExchange {
     return this.withBody(contentType.type, file);
   }
 
+  /*
+   * ===========================================================
+   *                    Response methods
+   * ===========================================================
+   */
+
   public MxExchange commit() {
     try {
       long cl = 0;
-      if (responseStatus == MxStatus._204) {
+      if (resStatus == MxStatus._204) {
         cl = -1;
-      } else if (responseBody != null) {
-        cl = responseContentLength;
+      } else if (resBody != null) {
+        cl = resLength;
       }
-      this.io.sendResponseHeaders(responseStatus.code, cl);
-      if (responseBody != null) {
-        responseBody.transferTo(io.getResponseBody());
+      this.io.sendResponseHeaders(resStatus.code, cl);
+      this.resHeaders = true;
+      if (resBody != null) {
+        resBody.transferTo(io.getResponseBody());
       }
       this.io.close();
-      this.responseCommitted = true;
+      this.resCommitted = true;
       return this;
     } catch (Exception e) {
       throw new IllegalStateException("Unable to commit response", e);
@@ -227,7 +235,11 @@ public class MxExchange {
   }
 
   public Boolean isCommitted() {
-    return responseCommitted;
+    return resCommitted;
+  }
+
+  public Boolean headersSent() {
+    return resHeaders;
   }
 
   /*

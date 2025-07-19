@@ -1,13 +1,12 @@
 package io.vacco.murmux.middleware;
 
 import io.vacco.murmux.http.*;
-import org.slf4j.*;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class MxRouter implements MxHandler {
+import static io.vacco.murmux.http.MxLog.*;
 
-  private static final Logger log = LoggerFactory.getLogger(MxRouter.class);
+public class MxRouter implements MxHandler {
 
   private final Map<String, MxRule> methodIdx = new TreeMap<>();
   private final Set<MxRule>         pathSet   = new TreeSet<>();
@@ -139,7 +138,7 @@ public class MxRouter implements MxHandler {
     } else if (noMatch != null) {
       noMatch.handle(xc);
     } else {
-      log.warn(
+      debug(
         "{}{} - No rule matched [{} {}]",
         getClass().getSimpleName(),
         name == null ? "" : String.format("(%s)", name),

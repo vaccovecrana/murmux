@@ -3,23 +3,20 @@ package io.vacco.murmux;
 import com.sun.net.httpserver.*;
 import io.vacco.murmux.http.*;
 import io.vacco.murmux.middleware.*;
-import org.slf4j.*;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.concurrent.*;
-import java.util.function.BiConsumer;
+
+import static io.vacco.murmux.http.MxLog.info;
 
 public class Murmux {
 
-  private static final Logger log = LoggerFactory.getLogger(Murmux.class);
-
-  private String host;
-  private HttpServer httpServer;
-  private Executor executor = Executors.newCachedThreadPool();
-  private MxHandler root;
-  private MxHandler closeHandler = new MxClose();
-  private BiConsumer<HttpExchange, Exception> errorHandler = new MxError();
+  private String          host;
+  private HttpServer      httpServer;
+  private Executor        executor = Executors.newCachedThreadPool();
+  private MxHandler       root;
+  private MxErrorHandler  errorHdl = new MxClose();
 
   /**
    * Bind to a host name with a custom executor.
@@ -47,13 +44,8 @@ public class Murmux {
     return this;
   }
 
-  public Murmux closeHandler(MxHandler handler) {
-    this.closeHandler = Objects.requireNonNull(handler);
-    return this;
-  }
-
-  public Murmux errorHandler(BiConsumer<HttpExchange, Exception> handler) {
-    this.errorHandler = Objects.requireNonNull(handler);
+  public Murmux errorHandler(MxErrorHandler handler) {
+    this.errorHdl = Objects.requireNonNull(handler);
     return this;
   }
 
@@ -77,9 +69,11 @@ public class Murmux {
           try {
             var xc = new MxExchange(io);
             root.handle(xc);
-            closeHandler.handle(xc);
+            if (!xc.isCommitted()) {
+              errorHdl.handle(xc);
+            }
           } catch (Exception e) {
-            errorHandler.accept(io, e);
+            errorHdl.accept(null, io, e);
           }
         });
         httpServer.start();
@@ -98,7 +92,7 @@ public class Murmux {
   /** Stop the server. */
   public void stop() {
     if (httpServer != null) {
-      log.info("Stopping");
+      info("Stopping");
       httpServer.stop(0);
     }
   }

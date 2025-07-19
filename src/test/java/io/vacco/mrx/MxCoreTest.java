@@ -16,15 +16,20 @@ import static org.junit.Assert.*;
 public class MxCoreTest {
 
   static { LoggerInit.apply(); }
+
   private static final Logger log = LoggerFactory.getLogger(MxCoreTest.class);
 
   static {
+    MxLog.setDebugLogger(log::debug);
+    MxLog.setInfoLogger(log::info);
+    MxLog.setWarnLogger(log::warn);
+    MxLog.setErrorLogger(log::error);
+
     it("Defines request rules", () -> {
       var rule0 = MxRule.of(MxMethod.GET.method, "/hello", null);
       var rule1 = MxRule.of(MxMethod.PUT.method, "/hello", null);
       log.info(rule0.toString());
       log.info("[{} {}]", rule0.hashCode(), rule1.hashCode());
-      assertEquals(rule0, rule0);
       assertNotEquals(rule0, rule1);
     });
     it("Parses URL request paths with parameters", () -> {
@@ -33,8 +38,8 @@ public class MxCoreTest {
       var lol = MxPaths.matchUrl(p0, t0);
       assertNotNull(lol);
       assertFalse(lol.isEmpty());
-      assertEquals(lol.get("placeId"), "12");
-      assertEquals(lol.get("regionId"), "2");
+      assertEquals("12", lol.get("placeId"));
+      assertEquals("2", lol.get("regionId"));
     });
     it("Makes cookies", () -> {
       var cook = new MxCookie("sess", Integer.toHexString(123456))
