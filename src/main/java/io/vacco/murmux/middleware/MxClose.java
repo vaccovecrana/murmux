@@ -8,28 +8,33 @@ import static io.vacco.murmux.http.MxLog.*;
 public class MxClose implements MxHandler, MxErrorHandler {
 
   @Override public void accept(MxExchange xc, HttpExchange io, Exception e) {
+    if (io == null) {
+      return;
+    }
     try {
-      if (io != null) {
-        error("Exchange forcing close: [{} {}]", io.getRequestMethod(), io.getRequestURI());
+      if (xc != null && xc.headersSent()) {
         if (e != null) {
+          error("Exchange already committed: [{} {}]. Closing.", io.getRequestMethod(), io.getRequestURI());
           debug("Exchange processing error", e);
         }
-        if (xc != null && !xc.headersSent()) {
-          io.sendResponseHeaders(MxStatus._500.code, 0);
+      } else {
+        var err = e != null ? e : (xc != null ? xc.getAttachment(Exception.class) : null);
+        if (err != null) {
+          error("Request processing error: [{} {}]. Forcing close.", io.getRequestMethod(), io.getRequestURI());
+          debug("Exchange processing error", err);
         } else {
-          io.sendResponseHeaders(MxStatus._404.code, 0);
+          warn("Request did not commit: [{} {}]. Forcing close.", io.getRequestMethod(), io.getRequestURI());
         }
-        io.close();
+        var status = err != null ? MxStatus._500 : MxStatus._404;
+        io.sendResponseHeaders(status.code, -1);
       }
     } catch (Exception e0) {
       error("Exchange closing error: [{} {}]", io.getRequestMethod(), io.getRequestURI(), e0);
     } finally {
-      if (io != null) {
-        try {
-          io.close();
-        } catch (Exception e1) {
-          error("Exchange close failed: {}", io, e1);
-        }
+      try {
+        io.close();
+      } catch (Exception e1) {
+        error("Exchange close failed: {}", io, e1);
       }
     }
   }
