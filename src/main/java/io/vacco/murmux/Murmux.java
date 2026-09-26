@@ -66,14 +66,18 @@ public class Murmux {
         httpServer = HttpServer.create(socketAddress, 0);
         httpServer.setExecutor(executor);
         httpServer.createContext("/", io -> {
+          MxExchange xc = null;
           try {
-            var xc = new MxExchange(io);
+            xc = new MxExchange(io);
             root.handle(xc);
             if (!xc.isCommitted()) {
               errorHdl.handle(xc);
             }
           } catch (Exception e) {
-            errorHdl.accept(null, io, e);
+            if (xc != null) {
+              xc.putAttachment(e);
+            }
+            errorHdl.accept(xc, io, e);
           }
         });
         httpServer.start();
