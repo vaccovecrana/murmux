@@ -34,7 +34,8 @@ public class MxErrorTest {
   private static void capture(String fmt, Object[] args) {
     var sb = new StringBuilder(fmt == null ? "" : fmt);
     for (var a : args) {
-      if (a instanceof Throwable t) {
+      if (a instanceof Throwable) {
+        var t = (Throwable) a;
         sb.append(" | ")
           .append(t.getClass().getName())
           .append(": ")
